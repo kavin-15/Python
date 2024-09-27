@@ -9,7 +9,7 @@ k = requests.get(url)
 
 city_dic = json.loads(k.text)
 a = city_dic["current"]["temp_c"]
-b = str(a)+" celsius"
+b = "Current weather in " + city + " is " + str(a) + " celsius"
 print(b)
 speak = wincl.Dispatch("SAPI.SpVoice")
 speak.Speak(b)
