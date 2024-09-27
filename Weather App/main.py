@@ -8,4 +8,8 @@ url = f"http://api.weatherapi.com/v1/current.json?key=13f0548534fb4bcbb998513424
 k = requests.get(url)
 
 city_dic = json.loads(k.text)
-print(city_dic["current"]["temp_c"])
+a = city_dic["current"]["temp_c"]
+b = str(a)+" celsius"
+print(b)
+speak = wincl.Dispatch("SAPI.SpVoice")
+speak.Speak(b)
