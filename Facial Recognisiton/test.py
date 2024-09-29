@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import face_recognition
 import csv
+import win32com.client as wincl
+import time
 from datetime import datetime
 
 v_capture = cv2.VideoCapture(0)
@@ -21,6 +23,10 @@ student_name = ["student1", "student2", "student3", "student4"]
 #Expected students
 students = student_name.copy()
 
+acknowledged_students = set()
+no_face_timer = 0
+max_no_face_time = 500
+
 face_locations = []
 face_encodings = []
 
@@ -33,6 +39,8 @@ lnwriter = csv.writer(f)
 
 while True:
     ret, frame = v_capture.read()
+    if not ret:
+        break
     small_frame = cv2.resize(frame, (0, 0), fx = 0.25, fy = 0.25)
     rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
     
@@ -41,6 +49,7 @@ while True:
 
     face_locations = face_recognition.face_locations(rgb_small_frame)
     face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
 
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         top *= 4
@@ -60,6 +69,9 @@ while True:
         #Returning the name of the student with whom the face has matched
         if(matches[best_match]):
             name = student_name[best_match]
+            current_time = now.strftime("%H-%M-%S")
+            lnwriter.writerow([name, current_time])  # Add to the set
+
         if name in student_name:
             font = cv2.FONT_HERSHEY_SIMPLEX
             bottomleft = (10, 100)
@@ -69,12 +81,22 @@ while True:
             linetype = 2
 
             cv2.putText(frame, name + "Present", bottomleft, font, fontScale, fontColor, thickness, linetype)
-
-            if name in student_name:
-                students.remove(name)
-                current_time = now.strftime("%H-%M-%S")
-                lnwriter.writerow([name, current_time])
     cv2.imshow("Attendace", frame)
+
+    if name not in acknowledged_students:  # Check if not acknowledged
+                a = f"{name} is present"
+                speak = wincl.Dispatch("SAPI.SpVoice")
+                speak.Speak(a)
+                acknowledged_students.add(name)
+    if not face_encodings:  # No faces detected
+            no_face_timer += 1  # Increment the timer (assuming the loop runs every second)
+    else:
+            no_face_timer = 0  # Reset timer if a face is detected
+
+        # Check if no face has been detected for too long
+    if no_face_timer > max_no_face_time:
+            print("No face detected. Closing application.")
+            break  # Exit the loop if no face detected for too long
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 v_capture.release()
