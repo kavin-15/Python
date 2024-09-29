@@ -16,7 +16,7 @@ student4 = face_recognition.load_image_file("Data/student4.jpg")
 student4_encoding = face_recognition.face_encodings(student4)[0]
 
 student_face_encoding = [student1_encoding, student2_encoding, student3_encoding, student4_encoding]
-student_name = ["Student 1", "Student 2", "Student 3", "Student 4"]
+student_name = ["student1", "student2", "student3", "student4"]
 
 #Expected students
 students = student_name.copy()
@@ -60,9 +60,23 @@ while True:
         #Returning the name of the student with whom the face has matched
         if(matches[best_match]):
             name = student_name[best_match]
-        
+        if name in student_name:
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            bottomleft = (10, 100)
+            fontScale = 1.5
+            fontColor = (255, 0, 0)
+            thickness = 3
+            linetype = 2
+
+            cv2.putText(frame, name + "Present", bottomleft, font, fontScale, fontColor, thickness, linetype)
+
+            if name in student_name:
+                students.remove(name)
+                current_time = now.strftime("%H-%M-%S")
+                lnwriter.writerow([name, current_time])
     cv2.imshow("Attendace", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 v_capture.release()
 cv2.destroyAllWindows()
+f.close
